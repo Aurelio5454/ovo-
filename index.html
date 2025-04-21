@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loja de Ovos de Páscoa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body {
+      background: linear-gradient(to right, #ffe0f0, #ffe5ec), url('https://images.unsplash.com/photo-1616593964821-07ce6dfc9df3?auto=format&fit=crop&w=1500&q=80') no-repeat center center fixed;
+      background-size: cover;
+    }
+  </style>
+  <script>
+    let cart = [];
+
+    function addToCart(productName, price) {
+      cart.push({ productName, price });
+      alert(`${productName} adicionado ao carrinho!`);
+    }
+
+    function checkout(event) {
+      event.preventDefault();
+      if (cart.length === 0) {
+        alert("Seu carrinho está vazio!");
+        return;
+      }
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const metodo = document.getElementById('metodo').value;
+
+      if (!name || !email || metodo === "Escolher método de pagamento") {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+      if (metodo === "PayPal") {
+        document.getElementById("paypal-button-container").style.display = "block";
+        document.getElementById("checkout-form").style.display = "none";
+      } else if (metodo === "VISA") {
+        alert(`Redirecionando para o gateway Stripe para pagamento de USD ${total.toFixed(2)}...`);
+      } else {
+        alert(`Compra finalizada por ${name}! Total: USD ${total.toFixed(2)} via ${metodo}.
+Enviaremos detalhes para ${email}`);
+        cart = [];
+      }
+    }
+
+    window.addEventListener('load', () => {
+      paypal.Buttons({
+        createOrder: function(data, actions) {
+          const total = cart.reduce((sum, item) => sum + item.price, 0);
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                value: total.toFixed(2)
+              }
+            }]
+          });
+        },
+        onApprove: function(data, actions) {
+          return actions.order.capture().then(function(details) {
+            alert('Pagamento concluído por ' + details.payer.name.given_name);
+            cart = [];
+            document.getElementById("checkout-form").style.display = "block";
+            document.getElementById("paypal-button-container").style.display = "none";
+          });
+        }
+      }).render('#paypal-button-container');
+    });
+  </script>
+</head>
+<body class="text-gray-800">
+  <header class="bg-pink-500 p-6 shadow-md">
+    <h1 class="text-3xl font-bold text-white text-center">🐰 Loja de Ovos de Páscoa</h1>
+    <p class="text-center text-white text-sm">Encante seus pequenos com os ovos mais divertidos e saborosos!</p>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6 grid md:grid-cols-1 gap-6">
+    <section class="mb-6">
+      <h2 class="text-xl font-bold mb-2">Sobre a Loja</h2>
+      <p class="bg-white p-4 rounded-xl shadow">Nossa loja de ovos de Páscoa é dedicada a tornar essa data mágica e inesquecível para as crianças. Com chocolates de qualidade, surpresas incríveis e preços promocionais, oferecemos uma experiência única de compra. Compre com segurança e receba em casa ovos de Páscoa deliciosos e criativos. Aproveite nossas ofertas exclusivas e garanta sorrisos neste feriado especial!</p>
+    </section>
+
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Ovos de Páscoa em Promoção</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl shadow p-4">
+          <img src="https://images.unsplash.com/photo-1587654780275-5d0b6fa4f05d" alt="Ovo de páscoa 1" class="rounded-lg w-full h-48 object-cover">
+          <h3 class="text-lg font-semibold mt-2">Ovo Surpresa Infantil</h3>
+          <p class="text-sm">Chocolate ao leite com surpresa divertida.</p>
+          <p class="font-bold mt-1">USD 10.00</p>
+          <button onclick="addToCart('Ovo Surpresa Infantil', 10)" class="mt-2 w-full bg-pink-500 text-white py-2 rounded hover:bg-pink-600">Adicionar ao Carrinho</button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-4">
+          <img src="https://images.unsplash.com/photo-1616603889720-7a4b3bdcf4b4" alt="Ovo de páscoa 2" class="rounded-lg w-full h-48 object-cover">
+          <h3 class="text-lg font-semibold mt-2">Ovo de Chocolate Branco</h3>
+          <p class="text-sm">Delicioso chocolate branco com recheio de marshmallow.</p>
+          <p class="font-bold mt-1">USD 10.00</p>
+          <button onclick="addToCart('Ovo de Chocolate Branco', 10)" class="mt-2 w-full bg-pink-500 text-white py-2 rounded hover:bg-pink-600">Adicionar ao Carrinho</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold mb-4">🎁 Oferta Especial</h2>
+      <p class="bg-yellow-200 p-4 rounded-xl text-center font-semibold">Na compra de 3 ovos, ganhe um brinde surpresa exclusivo! Oferta válida por tempo limitado!</p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-bold mb-2">💬 Avaliações dos Clientes</h2>
+      <textarea placeholder="Deixe sua avaliação aqui..." class="w-full p-2 border rounded h-24"></textarea>
+      <button class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Enviar Avaliação</button>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-bold mb-2">🎥 Veja nosso vídeo</h2>
+      <video class="w-full rounded-xl shadow" controls autoplay muted loop>
+        <source src="https://cdn.pixabay.com/vimeo/616387178/kids-95289.mp4?width=640&hash=a40c3a78701915fa9e0db2161ad07b196f5f6894" type="video/mp4">
+        Seu navegador não suporta vídeo.
+      </video>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-bold mb-2">📞 Suporte 24h</h2>
+      <p>Nosso time está disponível 24 horas por dia via WhatsApp, e-mail ou chat!</p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold my-6">Escolha seu método de pagamento</h2>
+      <form id="checkout-form" class="bg-white p-4 rounded-xl shadow space-y-4" onsubmit="checkout(event)">
+        <input type="text" id="name" placeholder="Nome completo" class="w-full p-2 border rounded" />
+        <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded" />
+        <select id="metodo" class="w-full p-2 border rounded">
+          <option>Escolher método de pagamento</option>
+          <option>VISA</option>
+          <option>PayPal</option>
+          <option>Skrill</option>
+        </select>
+        <div class="flex justify-center gap-4 py-2">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="Visa" class="h-8">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="h-8">
+          <img src="https://upload.wikimedia.org/wikipedia/en/7/7b/Skrill_logo.svg" alt="Skrill" class="h-8">
+        </div>
+        <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Finalizar Compra</button>
+      </form>
+      <div id="paypal-button-container" style="display:none; margin-top: 1rem;"></div>
+    </section>
+  </main>
+
+  <footer class="bg-pink-500 text-white text-center py-4 mt-10">
+    &copy; 2025 Loja de Ovos de Páscoa. Todos os direitos reservados.
+  </footer>
+</body>
+</html>
